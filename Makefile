@@ -3,8 +3,8 @@ all: main
 main: main.py lu.py rdft.py
 	python main.py
 
-iteration: iteration.py lu.py rdft.py
-	python iteration.py
+wrapper: wrapper.py iteration.py lu.py rdft.py
+	python wrapper.py
 
 clean:
-	rm lu.pyc rdft.pyc
+	rm *.pyc
