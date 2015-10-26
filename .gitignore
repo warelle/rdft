@@ -1,0 +1,4 @@
+result/
+failed/
+*.pyc
+*.swp
