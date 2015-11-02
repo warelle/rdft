@@ -1,4 +1,6 @@
 result/
 failed/
+test/
+test_result/
 *.pyc
 *.swp
