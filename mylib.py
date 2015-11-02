@@ -17,9 +17,15 @@ def cond(a):
   b = np.array(a, dtype=complex)
   return linalg.cond(b)
 
-# for float128 matrix condition number
+# for float128 matrix singular value
 def singular(a):
   b = np.array(a, dtype=np.float64)
+  u,s,v = np.linalg.svd(b)
+  return s
+
+# for float128 matrix singular value
+def complex_singular(a):
+  b = np.array(a, dtype=np.complex128)
   u,s,v = np.linalg.svd(b)
   return s
 
