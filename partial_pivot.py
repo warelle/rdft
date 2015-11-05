@@ -8,6 +8,8 @@ import scipy.linalg as slinalg
 import numpy.linalg as linalg
 import numpy as np
 
+import mylib
+
 #------------------------------------
 # function definition
 #------------------------------------
@@ -90,6 +92,22 @@ def solve(a,b):
   swapped_b_save = np.array(swapped_b)
   tmp1 = l_step(l, swapped_b)
   x = u_step(u, tmp1)
+  swapped_a = swap_a(a_save,p)
+  return (x, l, u, swapped_a, swapped_b_save)
+
+def solve_cast(a,b):
+  a_save = np.array(a)
+  b_save = np.array(b)
+#  a = mylib.float128_64_128(a)
+#  b = mylib.float128_64_128(b)
+  (l,u,p) = lu(a)
+  swapped_b = swap_b(b,p)
+  swapped_b_save = np.array(swapped_b)
+#  l = mylib.float128_64_128(l)
+#  u = mylib.float128_64_128(u)
+  tmp1 = l_step(l, swapped_b)
+  x = u_step(u, tmp1)
+#  x = mylib.float128_64_128(x)
   swapped_a = swap_a(a_save,p)
   return (x, l, u, swapped_a, swapped_b_save)
 

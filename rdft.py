@@ -15,11 +15,13 @@ import mylib
 # function definition
 #------------------------------------
 def generate_f(size):
+  #return mylib.generate_f_m(size)
   r = np.zeros((size,size), dtype=np.complex256)
   for i in range(0,size):
     for j in range(0,size):
       r[i,j] = (cmath.rect(1,(-2.0*math.pi/size)*i*j))/cmath.sqrt(size)
-  return r
+      #r[i,j] = (mylib.cos_float128(-2.0*math.pi*i*j/size) + 1j*mylib.sin_float128(-2.0*math.pi*i*j/size))/cmath.sqrt(size)
+  return np.array(r,dtype=np.complex256)
 
 def generate_r(size):
   r = np.zeros((size, size), dtype=np.complex256)
@@ -76,7 +78,7 @@ def rdft_lu_solver_with_lu(a,b,r=[]):
   (l,u) = lu.lu(fra)
   y     = lu.l_step(l,frb)
   x     = lu.u_step(u,y)
-  return (x, l, u, fra_save, frb_save)
+  return (x, l, u, fra_save, frb_save, fr)
 
 #------------------------------------
 # test code
