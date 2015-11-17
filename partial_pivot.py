@@ -32,7 +32,7 @@ def pivot(a, k):
 
 def lu(mat):
   (size, _) = mat.shape
-  l, u = np.zeros((size,size), dtype=np.float128), np.zeros((size,size), dtype=np.float128)
+  l, u = np.zeros((size,size), dtype=np.float64), np.zeros((size,size), dtype=np.float64)
   p = []
   for i in range(0,size-1):
     pnum = pivot(mat,i)
@@ -114,8 +114,8 @@ def solve_cast(a,b):
 #------------------------------------
 # test code
 #------------------------------------
-#tmp1 = np.array([[2,5,7],[4,13,20],[8,29,50]], dtype=np.float128)
-#tmp2 = np.array([14,37,87], dtype=np.float128)
+#tmp1 = np.array([[2,5,7],[4,13,20],[8,29,50]], dtype=np.float64)
+#tmp2 = np.array([14,37,87], dtype=np.float64)
 #print(tmp1)
 #print(tmp2)
 #(l,u,p) = lu(tmp1)

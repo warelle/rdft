@@ -12,7 +12,6 @@ import numpy as np
 import rdft
 import lib_lu_solve as lib
 import iteration
-import mylib
 import partial_pivot as pp
 
 import main
@@ -30,9 +29,10 @@ def const_a_detection(sample, size, rand_range):
     [a, mca, mcfra, fra, a_subcond, fra_subcond] = test_result[i]
     fras.append(fra)
     mcfras.append(mcfra)
-    a_subsingulars = mylib.singular(a)
+    _,  a_subsingulars, _ = linalg.svd(a)
     for seq in rdft.all_leading_sequence(size):
-      fra_subsingulars.append(mylib.complex_singular(fra[np.ix_(seq,seq)]))
+      _, fra_subsing, _ = linalg.svd(fra[np.ix_(seq,seq)])
+      fra_subsingulars.append(fra_subsing)
     fra_subconds.append(fra_subcond)
     if mca < 20:
       mca_flg = 1 # this is not what we want to detect even as a sample

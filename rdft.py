@@ -1,4 +1,4 @@
-# coding: UTF-8
+#coding: UTF-8
 
 import math
 import cmath
@@ -9,25 +9,24 @@ import numpy.linalg as linalg
 import numpy as np
 
 import lu
-import mylib
 
 #------------------------------------
 # function definition
 #------------------------------------
 def generate_f(size):
-  #return mylib.generate_f_m(size)
-  r = np.zeros((size,size), dtype=np.complex256)
+  r = np.zeros((size,size), dtype=np.complex128)
   for i in range(0,size):
     for j in range(0,size):
-      r[i,j] = (cmath.rect(1,(-2.0*math.pi/size)*i*j))/cmath.sqrt(size)
-      #r[i,j] = (mylib.cos_float128(-2.0*math.pi*i*j/size) + 1j*mylib.sin_float128(-2.0*math.pi*i*j/size))/cmath.sqrt(size)
-  return np.array(r,dtype=np.complex256)
+      #r[i,j] = (cmath.rect(1,(-2.0*math.pi/size)*i*j))/cmath.sqrt(size)
+      r[i,j] = np.random.random()
+  return r
 
 def generate_r(size):
-  r = np.zeros((size, size), dtype=np.complex256)
+  r = np.zeros((size, size), dtype=np.complex128)
   for i in range(0,size):
     randnum = random.uniform(0, 2*math.pi)
-    r[i,i]  = cmath.rect(1, randnum)
+    #r[i,i]  = cmath.rect(1, randnum)
+    r[i,i]  = 1.0
   return r
 
 def all_leading_sequence(maxsize):
@@ -46,7 +45,7 @@ def get_leading_maxcond(mat):
   leading_cond = []
   for seq in allseq:
     sub = mat[np.ix_(seq,seq)]
-    subcond = mylib.cond(sub)
+    subcond = linalg.cond(sub)
     leading_cond.append(subcond)
     if subcond > maxcond:
       maxcond     = subcond
@@ -100,3 +99,4 @@ def rdft_lu_solver_with_lu(a,b,r=[]):
 #  print("A:  ", a_maxcond/a_cond)
 #  print("FRA:", fra_maxcond/fra_cond)
 #
+
