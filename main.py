@@ -9,7 +9,6 @@ import numpy.linalg as linalg
 import numpy as np
 
 import rdft
-import mylib
 import lib_lu_solve as lib
 import iteration
 import partial_pivot as pp
@@ -18,13 +17,13 @@ import partial_pivot as pp
 # function definition
 #------------------------------------
 def generate_random_matrix(size, val_range):
-  r = np.zeros((size,size), dtype=np.complex256)
+  r = np.zeros((size,size), dtype=np.complex128)
   for i in range(0,size):
     for j in range(0,size):
       r[i,j] = random.uniform(-val_range,val_range)
   return r
 def generate_random_vector(size,val_range):
-  r = np.zeros(size, dtype=np.complex256)
+  r = np.zeros(size, dtype=np.complex128)
   for i in range(0,size):
     r[i] = random.uniform(-val_range,val_range)
   return r
@@ -42,36 +41,6 @@ def error(x1, x2):
 #------------------------------------
 # test code
 #------------------------------------
-def error_check(const=False):
-  for i in range(0,10):
-    size = 200
-    (a,b,_) = generate_linear_system(size, 10000)
-    x1 = []
-    if const:
-      x1 = rdft.rdft_lu_solver(a,b, rdft.generate_r(size))
-    else:
-      x1 = rdft.rdft_lu_solver(a,b)
-    x2 = lib.lu_solver(a,b)
-    x3 = lib.direct_solver(a,b)
-    x4 = lib.direct_lu_solver(a,b)
-  #  print("---rdft_lu---")
-  #  print(x1)
-  #  print("---lib_lu---")
-  #  print(x2)
-  #  print("---lib_solver---")
-  #  print(x3)
-  #  print("---lib_lu_solver---")
-  #  print(x4)
-    print("cond:", mylib.cond(a))
-    print("---error---")
-    print("nice lu  ", error(x1,x2))
-    print("solver   ", error(x1,x3))
-    print("lu_solver", error(x1,x4))
-    print("[1] error", linalg.norm(b - a.dot(x1)))
-    print("[2] error", linalg.norm(b - a.dot(x2)))
-    print("[3] error", linalg.norm(b - a.dot(x3)))
-    print("[4] error", linalg.norm(b - a.dot(x4)))
-
 def const_r():
   for i in range(0, 50):
     size = 200
@@ -85,8 +54,8 @@ def const_r():
     fra = fr.dot(mat)
     (a_maxcond,_,_)   = rdft.get_leading_maxcond(mat)
     (fra_maxcond,_,_) = rdft.get_leading_maxcond(fra)
-    a_cond   = mylib.cond(mat)
-    fra_cond = mylib.cond(fra)
+    a_cond   = linalg.cond(mat)
+    fra_cond = linalg.cond(fra)
     print("A:  ", a_maxcond/a_cond)
     print("FRA:", fra_maxcond/fra_cond)
 
@@ -103,8 +72,8 @@ def const_a(sample, size, rand_range):
     fra = fr.dot(mat)
     (a_maxcond,_,a_subcond)   = rdft.get_leading_maxcond(mat)
     (fra_maxcond,_,fra_subcond) = rdft.get_leading_maxcond(fra)
-    a_cond   = mylib.cond(mat)
-    fra_cond = mylib.cond(fra)
+    a_cond   = linalg.cond(mat)
+    fra_cond = linalg.cond(fra)
     result.append([mat, a_maxcond/a_cond, fra_maxcond/fra_cond, fra, a_subcond, fra_subcond])
     #print("A:  ", a_maxcond/a_cond)
     #print("FRA:", fra_maxcond/fra_cond)
@@ -120,33 +89,29 @@ def fourier_r(size):
 def iteration_checker(size, test_num, val_range, res_opt=0):
   for i in range(0,test_num):
     (a,b,x) = generate_linear_system(size, val_range)
-    a_float = np.array(a,dtype=np.float128)
-    b_float = np.array(b,dtype=np.float128)
+    a_float = np.array(a,dtype=np.float64)
+    b_float = np.array(b,dtype=np.float64)
     x1 = []
     l,u = [], []
-    (x1, l, u, fra, frb) = rdft.rdft_lu_solver_with_lu(a,b,fourier_r(size))
+    (x1, l, u, fra, frb) = rdft.rdft_lu_solver_with_lu(a,b)
     x0 = x1
     x1_after  = np.array(x1)
-    x1_after  = iteration.iteration(fra, l, u, frb, x1_after, mylib.cond(fra))
+    x1_after  = iteration.iteration(fra, l, u, frb, x1_after, linalg.cond(fra))
     x1_after  = iteration.remove_imag(x1_after)
-    x1_before = np.array(x1)
-    x1_before = iteration.remove_imag(x1_before)
-    x1_before = iteration.iteration(fra, l, u, frb, x1_before, mylib.cond(fra))
-    x1_before = iteration.remove_imag(x1_before)
     (x2, pl, pu, swapped_a, swapped_b) = pp.solve(a_float,b_float)
-    x3 = iteration.iteration(swapped_a, pl, pu, swapped_b, x2, mylib.cond(a_float))
+    x3 = iteration.iteration(swapped_a, pl, pu, swapped_b, x2, linalg.cond(a_float))
     #x2 = lib.lu_solver(a,b)
     #x2 = lib.direct_solver(a_float,b_float)
     #x4 = lib.direct_lu_solver(a,b)
     if res_opt == 1:
       print("---error---")
-      print("cond:", mylib.cond(a))
+      print("cond:", linalg.cond(a))
       print("[0] error", linalg.norm(b - a.dot(x0)))
       print("[1] error", linalg.norm(b - a.dot(x1)))
       #print("[2] error", linalg.norm(b - a.dot(x2)))
       #print("[3] error", linalg.norm(b - a.dot(x3)))
     elif res_opt == 2:
-      print(str(mylib.cond(a)) + " " +
+      print(str(linalg.cond(a)) + " " +
       str(linalg.norm(x - x0)) + " " +
       str(linalg.norm(x - x1_before)) + " " +
       str(linalg.norm(x - x1_after)) + " " +
@@ -154,7 +119,7 @@ def iteration_checker(size, test_num, val_range, res_opt=0):
       str(linalg.norm(x - x3)))
     elif res_opt != 1:
       print("---error---")
-      print("cond:", mylib.cond(a))
+      print("cond:", linalg.cond(a))
       print("[0] error", linalg.norm(x - x0))
       print("[1] error", linalg.norm(x - x1_before))  # remove_imag => iteration
       print("[2] error", linalg.norm(x - x1_after))   # iteration   => remove_imag
