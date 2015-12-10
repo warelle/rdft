@@ -93,7 +93,7 @@ def iteration_checker(size, test_num, val_range, res_opt=0):
     b_float = np.array(b,dtype=np.float64)
     x1 = []
     l,u = [], []
-    (x1, l, u, fra, frb) = rdft.rdft_lu_solver_with_lu(a,b)
+    (x1, l, u, fra, frb, fr) = rdft.rdft_lu_solver_with_lu(a,b)
     x0 = x1
     x1_after  = np.array(x1)
     x1_after  = iteration.iteration(fra, l, u, frb, x1_after, linalg.cond(fra))
@@ -122,14 +122,14 @@ def iteration_checker(size, test_num, val_range, res_opt=0):
       step = []
       for j in x4_step:
         step.append(linalg.norm(x - j))
-      print(str(mylib.cond(a)) + " " +
+      print(str(linalg.cond(a)) + " " +
       str(linalg.norm(x - x0)) + " " +
       str(linalg.norm(x - x1_before)) + " " +
       str(linalg.norm(x - x1_after)) + " " +
       str(step) + " " +
       str(linalg.norm(x - x2))) # partial pivot only
     elif res_opt == 4:
-      print(str(mylib.cond(a)) + " " +
+      print(str(linalg.cond(a)) + " " +
       str(linalg.norm(x - x0)) + " " +
       str(linalg.norm(x - x2)) + " " +
       str(linalg.norm(x - x4))) # partial pivot only
@@ -149,4 +149,4 @@ def iteration_checker(size, test_num, val_range, res_opt=0):
 #error_check(True)
 
 # size, test_num, val_range, graph
-iteration_checker(100, 100, 100, 4)
+#iteration_checker(100, 100, 100, 4)

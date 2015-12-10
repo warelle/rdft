@@ -17,16 +17,39 @@ def generate_f(size):
   r = np.zeros((size,size), dtype=np.complex128)
   for i in range(0,size):
     for j in range(0,size):
-      #r[i,j] = (cmath.rect(1,(-2.0*math.pi/size)*i*j))/cmath.sqrt(size)
-      r[i,j] = np.random.random()
+      r[i,j] = (cmath.rect(1,(-2.0*math.pi/size)*i*j))/cmath.sqrt(size)
   return r
 
 def generate_r(size):
   r = np.zeros((size, size), dtype=np.complex128)
   for i in range(0,size):
     randnum = random.uniform(0, 2*math.pi)
-    #r[i,i]  = cmath.rect(1, randnum)
-    r[i,i]  = 1.0
+    r[i,i]  = cmath.rect(1, randnum)
+  return r
+
+def generate_random_r(size):
+  r = np.zeros((size, size), dtype=np.complex128)
+  filled = []
+  i = 0
+  while i < size:
+    rclm = random.randint(0,size-1)
+    rclm_filled_flg = False
+    for j in filled:
+      if j == rclm:
+        rclm_filled_flg = True
+    if rclm_filled_flg:
+      continue
+    filled.append(rclm)
+    randnum = random.uniform(0, 2*math.pi)
+    r[rclm,i]  = cmath.rect(1, randnum)
+    i = i + 1
+  return r
+
+def generate_g(size):
+  r = np.zeros((size,size), dtype=np.float64)
+  for i in range(0,size):
+    for j in range(0,size):
+      r[i,j] = np.random.random()
   return r
 
 def all_leading_sequence(maxsize):

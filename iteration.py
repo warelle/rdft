@@ -23,13 +23,13 @@ def remove_imag(x):
 
 def iteration(a, l, u, b, x, a_cond):
   (size,_) = a.shape
-  itera, itermax = 0, 5
+  itera, itermax = 0, 2
   a_nrm = linalg.norm(a, float("inf"))
   x_nrm = linalg.norm(x, float("inf"))
-  cte   = math.log10(a_cond) * math.sqrt(size)/10
+  #cte   = math.log10(a_cond) * math.sqrt(size)/10
   r     = b - a.dot(x)
   r_nrm = linalg.norm(r, float("inf"))
-  while itera < min(cte, itermax):
+  while itera < itermax:
     y = lu.l_step(l, r)
     z = lu.u_step(u, y)
     x = x + z
@@ -41,13 +41,13 @@ def iteration(a, l, u, b, x, a_cond):
 
 def iteration_another(a, l, u, fr, b, x, a_cond):
   (size,_) = a.shape
-  itera, itermax = 0, 5
+  itera, itermax = 0, 2
   a_nrm = linalg.norm(a, float("inf"))
   x_nrm = linalg.norm(x, float("inf"))
-  cte   = math.log10(a_cond) * math.sqrt(size)/10
+  #cte   = math.log10(a_cond) * math.sqrt(size)/10
   r     = fr.dot(b - a.dot(x))
   r_nrm = linalg.norm(r, float("inf"))
-  while itera < min(cte, itermax):
+  while itera < itermax:
     y = lu.l_step(l, r)
     z = lu.u_step(u, y)
     x = x + z

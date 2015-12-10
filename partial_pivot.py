@@ -8,8 +8,6 @@ import scipy.linalg as slinalg
 import numpy.linalg as linalg
 import numpy as np
 
-import mylib
-
 #------------------------------------
 # function definition
 #------------------------------------
