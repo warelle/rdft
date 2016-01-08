@@ -35,6 +35,7 @@ def lu(mat):
   for i in range(0,size-1):
     pnum = pivot(mat,i)
     p.append(pnum)
+    print p
     for j in range(i+1,size):
       mat[j,i] = mat[j,i]/mat[i,i]
       for k in range(i+1,size):

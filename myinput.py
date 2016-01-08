@@ -15,6 +15,7 @@ import lib_lu_solve as lib
 import iteration
 import partial_pivot as pp
 import lu
+import givens
 
 import main
 
@@ -37,25 +38,57 @@ def solve_rdft(a,b,x):
 def solve_rdft_improved(a,b,x):
   (size,_) = a.shape
   f   = rdft.generate_f(size)
-  r   = rdft.generate_random_r(size) ## === care === ##
+  r   = rdft.generate_random_r(size)
   fr  = f.dot(r)
   ra  = r.dot(a)
   (x1, l, u, fra, frb, _) = rdft.rdft_lu_solver_with_lu(a,b,r)
   x2 = np.array(x1)
-  x2  = iteration.iteration(fra, l, u, frb, x2, linalg.cond(fra))
+  x2  = iteration.iteration_another(a, l, u, fr, b, x2, linalg.cond(fra))
   x2  = iteration.remove_imag(x2)
   return (x2, fra, fr, ra, x1)
+def solve_rdft_givens(a,b,x):
+  (size,_) = a.shape
+  f   = rdft.generate_f(size)
+  r   = rdft.generate_r(size) ## === care === ##
+  g   = givens.givens_generation(size)
+  fr  = f.dot(r)
+  frg = fr.dot(g)
+  rg  = r.dot(g)
+  (x1, l, u, fra, frb, _) = rdft.rdft_lu_solver_with_lu(a,b,rg)
+  x2 = np.array(x1)
+  x2  = iteration.iteration_another(a, l, u, frg, b, x2, linalg.cond(fra))
+  x2  = iteration.remove_imag(x2)
+  return (x2, x1)
+def solve_rdft_givens_both(a,b,x):
+  (size,_) = a.shape
+  f   = rdft.generate_f(size)
+  r   = rdft.generate_r(size)
+  g1  = givens.givens_generation(size)
+  g2  = givens.givens_generation(size)
+  fr  = f.dot(r)
+  frg = fr.dot(g1)
+  frgb = frg.dot(b)
+  ag  = a.dot(g2)
+  frgag = frg.dot(ag)
+  (l,u) = lu.lu(frgag)
+  y     = lu.l_step(l,frgb)
+  z     = lu.u_step(u,y)
+  x1    = g2.dot(z)
+  x2  = np.array(x1)
+  x2  = iteration.iteration_another(a, l, u, frg, b, x2, linalg.cond(frgag), g2)
+  x2  = iteration.remove_imag(x2)
+  return (x2, x1)
 def solve_gauss(a,b,x):
   (size,_) = a.shape
   g   = rdft.generate_g(size)
   ga  = g.dot(a)
+  ga_save  = np.array(ga)
   gb  = g.dot(b)
   (l,u) = lu.lu(ga)
   y     = lu.l_step(l,gb)
   x1    = lu.u_step(u,y)
   x2 = np.array(x1)
   x2  = iteration.iteration_another(a, l, u, g, b, x2, linalg.cond(ga))
-  x2  = iteration.remove_imag(x2)
   return (x2, ga, a, x1)
 
 def solve_getinfo(a,b,x,sample):
@@ -77,6 +110,14 @@ def solve_getinfo(a,b,x,sample):
     fra_cond_imp = linalg.cond(fra_imp)
     err_rdft_imp_iter = linalg.norm(x1_imp-x)
     err_rdft_imp = linalg.norm(x1_imp_orig-x)
+    # RDFT givens solve
+    (x5_imp, x5_imp_orig) = solve_rdft_givens(a,b,x)
+    err_rdft_givens_iter = linalg.norm(x5_imp-x)
+    err_rdft_givens = linalg.norm(x5_imp_orig-x)
+    # RDFT givens solve
+    (x7_imp, x7_imp_orig) = solve_rdft_givens_both(a,b,x)
+    err_rdft_givens_both_iter = linalg.norm(x7_imp-x)
+    err_rdft_givens_both = linalg.norm(x7_imp_orig-x)
     # GAUSS solve
     (x2, ga, _, x2_orig) = solve_gauss(a,b,x)
     (ga_maxcond,_,ga_subcond) = rdft.get_leading_maxcond(fra)
@@ -90,7 +131,7 @@ def solve_getinfo(a,b,x,sample):
     err_pp = linalg.norm(x3-x)
     ##x3_i = iteration.iteration(swapped_a, pl, pu, swapped_b, x3, linalg.cond(a_float))
     #result make
-    result.append(([a_maxcond/a_cond, fra_maxcond/fra_cond, fra, a_subcond, fra_subcond, fr, ra, err_rdft_iter, err_rdft,err_rdft_imp_iter,err_rdft_imp],[ga_maxcond/ga_cond, ga, ga_subcond, err_gauss_iter, err_gauss],[err_pp]))
+    result.append(([a_maxcond/a_cond, fra_maxcond/fra_cond, fra, a_subcond, fra_subcond, fr, ra, err_rdft_iter, err_rdft,err_rdft_imp_iter,err_rdft_imp],[err_rdft_givens_iter,err_rdft_givens],[err_rdft_givens_both_iter,err_rdft_givens_both],[ga_maxcond/ga_cond, ga, ga_subcond, err_gauss_iter, err_gauss],[err_pp]))
   return result
 
 def get_singular(a,fra):
@@ -123,9 +164,9 @@ def my_a_run(a,b,x, test_num ,opt=0):
   err_lib = linalg.norm(xx-x)
   for i in range(0, test_num):
     counter = counter + 1
-    ([mca, mcfra, fra, a_subcond, fra_subconds, fr, ra, err_rdft_iter, err_rdft, err_rdft_imp_iter, err_rdft_imp],[mcga, ga, ga_subcond, err_gauss_iter, err_gauss],[err_pp]) = info[i]
+    ([mca, mcfra, fra, a_subcond, fra_subconds, fr, ra, err_rdft_iter, err_rdft, err_rdft_imp_iter, err_rdft_imp],[err_givens_iter, err_givens],[err_both_givens_iter, err_both_givens],[mcga, ga, ga_subcond, err_gauss_iter, err_gauss],[err_pp]) = info[i]
     (size, _) = a.shape
-    print(str(2*opt-1) + " " + str(err_rdft) + " " + str(err_rdft_iter) + " " + str(err_rdft_imp) + " " + str(err_rdft_imp_iter) + " " + str(err_gauss) + " " + str(err_gauss_iter) + " " + str(err_pp)+ " " + str(err_lib))
+    print(str(opt) + " " + str(err_rdft) + " " + str(err_rdft_iter) + " " + str(err_rdft_imp) + " " + str(err_rdft_imp_iter) + " " + str(err_givens) + " " + str(err_givens_iter) + " " + str(err_both_givens) + " " + str(err_both_givens_iter) + " " + str(err_gauss) + " " + str(err_gauss_iter) + " " + str(err_pp)+ " " + str(err_lib))
     #if err_pp > 100:
     #  np.savetxt("./result/result" + str(counter) + "_a.txt",a)
     #####f = rdft.generate_f(size)
@@ -187,7 +228,7 @@ def generate_own_system(size, val_range, opt=0,shift=0):
   #a = mg.z_matrix(size, 100)
   #a = mg.identity(size)
   #a = mg.lower_triangle(size, val_range)
-  a = mg.diag_big(size, val_range*1.0e14, val_range)
+  a = mg.diag_big(size, val_range*1.0e18, val_range)
   #a = mg.ascending_vector_matrix(size)
   #a = mg.toeplitz(size,100)
   #a = mg.circular(size,100,opt)
@@ -213,7 +254,7 @@ def generate_own_system(size, val_range, opt=0,shift=0):
 # test code
 #------------------------------------
 def run(test_num, opt=0,shift=0):
-  (a,b,x) = generate_own_system(128, 100.0, opt,shift)
+  (a,b,x) = generate_own_system(256, 100.0, opt,shift)
   my_a_run(a,b,x,test_num,opt)
 
 
